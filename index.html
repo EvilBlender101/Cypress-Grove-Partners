@@ -111,7 +111,7 @@
      "name": "What does it cost?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "Nothing up front. If your loan closes, our packaging fee (typically about $2,500) is disclosed on SBA Form 159, and the lender pays our referral fee."
+      "text": "Nothing up front. If your loan closes, our packaging fee is disclosed on SBA Form 159, and the lender pays our referral fee."
      }
     },
     {
@@ -194,9 +194,10 @@
 <main id="main">
 
 <section class="hero" id="top">
+  <canvas class="hero-canvas" aria-hidden="true"></canvas>
   <div class="wrap hero-grid">
     <div class="hero-copy">
-      <p class="eyebrow">SBA financing for Tampa Bay manufacturers</p>
+      <a class="badge" href="#guarantee"><span class="badge-dot" aria-hidden="true"></span>Since May 2026: a 90% SBA guarantee for manufacturers <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
       <h1><span>America is building again.</span> <span>Get your shop</span> <span>the capital to grow.</span></h1>
       <p class="lede">SBA now guarantees 90% of eligible 7(a) loans to Tampa Bay manufacturers. Cypress Grove Partners builds your loan package and brings it to lenders who finance shops like yours. Nothing is due up front.</p>
       <div class="hero-actions">
@@ -209,8 +210,11 @@
       </ul>
     </div>
     <div class="hero-visual">
-      <img src="/cypressgrove-site/assets/seal.png" alt="Cypress Grove Partners seal: a cypress tree inside a green ring" width="320" height="320">
+      <div class="tree-stage">
+        <img class="tree-fallback" src="/cypressgrove-site/assets/seal.png" alt="Cypress Grove Partners seal: a cypress tree inside a green ring" width="320" height="320">
+      </div>
       <p class="hero-tagline">Capital for Tampa Bay businesses</p>
+      <p class="tree-hint" aria-hidden="true"><span class="hint-hover">Move your cursor through the grove</span><span class="hint-touch">Tap the tree</span></p>
     </div>
   </div>
 </section>
@@ -378,7 +382,7 @@
       </details>
       <details class="faq-item">
         <summary>What does it cost? <i class="ph ph-caret-down" aria-hidden="true"></i></summary>
-        <div class="answer"><p>Nothing up front. If your loan closes, our packaging fee (typically about $2,500) is disclosed on SBA Form 159, and the lender pays our referral fee.</p></div>
+        <div class="answer"><p>Nothing up front. If your loan closes, our packaging fee is disclosed on SBA Form 159, and the lender pays our referral fee.</p></div>
       </details>
       <details class="faq-item">
         <summary>Can you guarantee my loan will be approved? <i class="ph ph-caret-down" aria-hidden="true"></i></summary>
@@ -449,5 +453,6 @@
 </footer>
 
 <script src="/cypressgrove-site/assets/site.js" defer></script>
+<script src="/cypressgrove-site/assets/tree.js" defer></script>
 </body>
 </html>
