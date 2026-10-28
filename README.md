@@ -5,7 +5,7 @@ Website for Cypress Grove Partners: SBA financing for Tampa Bay manufacturers. C
 Static site served by the Cloudflare Worker `cypress-grove-partners` (see `wrangler.jsonc`). Pushing the production branch deploys it.
 
 - `index.html`: home page
-- `privacy.html`: privacy and terms
+- `privacy.html`: privacy and terms, served by Cloudflare at `/privacy` (the site links there; in the Python preview open `/privacy.html`)
 - `404.html`: not found page
 - `cypressgrove-site/assets/`: styles (`site.css`), script (`site.js`) and images
 - `.assetsignore`: files kept off the public site
