@@ -199,10 +199,13 @@
 
     function frame(t) {
       raf = 0;
-      if (!t0) t0 = t;
-      step(t);
-      draw(t);
-      if (visible && !reduce) raf = requestAnimationFrame(frame);
+      if (!W || !H) layout(); // the page can load before the hero has a size
+      if (W && H) {
+        if (!t0) t0 = t;
+        step(t);
+        draw(t);
+      }
+      if (visible && (!reduce || !t0)) raf = requestAnimationFrame(frame);
     }
     function kick() { if (!raf && visible) raf = requestAnimationFrame(frame); }
 
@@ -224,7 +227,7 @@
           delay: reduce ? 0 : 300 + Math.max(0, 1 - p.sy / BASE_Y) * 1500 + Math.random() * 400 };
       });
       section.classList.add('tree-ready');
-      if (reduce) { t0 = 1; step(1); draw(1); }
+      if (reduce && W && H) { t0 = 1; step(1); draw(1); }
       kick();
 
       function local(e) { var b = section.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; }
@@ -232,7 +235,7 @@
       section.addEventListener('pointerleave', function () { pointer.x = pointer.y = -1e4; });
       stage.addEventListener('pointerdown', function (e) { var p = local(e); ripple(p.x, p.y); });
       if ('ResizeObserver' in window) {
-        new ResizeObserver(function () { layout(); if (reduce) draw(1); kick(); }).observe(section);
+        new ResizeObserver(function () { layout(); if (reduce && W && H) { if (!t0) { t0 = 1; step(1); } draw(1); } kick(); }).observe(section);
       }
       if ('IntersectionObserver' in window) {
         new IntersectionObserver(function (e) { visible = e[0].isIntersecting; if (visible) kick(); }).observe(section);
