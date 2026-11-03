@@ -1,8 +1,19 @@
 {
   "name": "cypress-grove-partners",
   "compatibility_date": "2026-10-01",
+  // The Worker only runs for /api/* (the Get started form); everything else is static assets
+  "main": "worker/index.js",
   "assets": {
     "directory": "./",
-    "not_found_handling": "404-page"
-  }
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"]
+  },
+  // Secrets are set in the Cloudflare dashboard: TURNSTILE_SECRET, TWENTY_API_KEY, NTFY_TOPIC
+  "vars": {
+    "ALLOWED_ORIGINS": "https://cypressgrove.partners,https://www.cypressgrove.partners",
+    "TWENTY_API_URL": "https://api.twenty.com",
+    "TWENTY_APP_URL": "https://cypress-grove-partners.twenty.com"
+  },
+  "observability": { "enabled": true }
 }

@@ -2,3 +2,4 @@
 .assetsignore
 README.md
 wrangler.jsonc
+worker
