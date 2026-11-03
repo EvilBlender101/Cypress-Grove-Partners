@@ -12,7 +12,7 @@
   // Secrets are set in the Cloudflare dashboard: TURNSTILE_SECRET, TWENTY_API_KEY, NTFY_TOPIC
   "vars": {
     "ALLOWED_ORIGINS": "https://cypressgrove.partners,https://www.cypressgrove.partners",
-    "TWENTY_API_URL": "https://api.twenty.com",
+    "TWENTY_API_URL": "https://cypress-grove-partners.twenty.com",
     "TWENTY_APP_URL": "https://cypress-grove-partners.twenty.com"
   },
   "observability": { "enabled": true }

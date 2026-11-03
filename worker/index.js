@@ -127,7 +127,13 @@ async function verifyTurnstile(env, token, ip) {
 async function twenty(env, method, path, body) {
   const res = await fetch(env.TWENTY_API_URL.replace(/\/$/, '') + '/rest/' + path, {
     method,
-    headers: { Authorization: 'Bearer ' + env.TWENTY_API_KEY, 'Content-Type': 'application/json' },
+    headers: {
+      Authorization: 'Bearer ' + env.TWENTY_API_KEY,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      // Cloudflare in front of Twenty refuses requests without a real User-Agent (error 1010)
+      'User-Agent': 'cypressgrove-website/1.0 (+https://cypressgrove.partners)'
+    },
     body: body ? JSON.stringify(body) : undefined
   });
   const text = await res.text();
@@ -199,17 +205,18 @@ async function saveToTwenty(env, f) {
 
   let companyId = existing && existing.companyId;
   if (!companyId) {
-    const company = { name: f.company };
+    // county and relationshipType are this workspace's custom fields (select values are upper case)
+    const company = { name: f.company, county: f.county.toUpperCase(), relationshipType: ['BORROWER'] };
     if (!FREE_MAIL.has(domain)) company.domainName = { primaryLinkUrl: 'https://' + domain };
-    companyId = (await create(env, 'companies', company, ['domainName'])).id;
+    companyId = (await create(env, 'companies', company, ['domainName', 'county', 'relationshipType'])).id;
   }
 
   let personId = existing && existing.id;
   if (!personId) {
-    const person = { name: splitName(f.name), emails: { primaryEmail: f.email }, companyId };
+    const person = { name: splitName(f.name), emails: { primaryEmail: f.email }, companyId, typeCustom: 'BORROWER' };
     const phones = phoneFields(f.phone);
     if (phones) person.phones = phones;
-    personId = (await create(env, 'people', person, ['phones'])).id;
+    personId = (await create(env, 'people', person, ['phones', 'typeCustom'])).id;
   }
 
   // The person is saved; the rest is best effort so one failure doesn't lose the lead
@@ -217,11 +224,11 @@ async function saveToTwenty(env, f) {
   const steps = [];
   let opportunityId = null;
   try {
-    opportunityId = (await create(env, 'opportunities', { name: 'Website inquiry: ' + f.company, companyId, pointOfContactId: personId })).id;
+    opportunityId = (await create(env, 'opportunities', { name: 'Website inquiry: ' + f.company, stage: 'LEAD', companyId, pointOfContactId: personId }, ['stage'])).id;
   } catch (err) { steps.push(err.message); }
 
-  const targets = { personId, companyId };
-  if (opportunityId) targets.opportunityId = opportunityId;
+  const targets = { targetPersonId: personId, targetCompanyId: companyId };
+  if (opportunityId) targets.targetOpportunityId = opportunityId;
 
   try {
     const note = await withBody(env, 'notes', { title: 'Website inquiry' }, details);
