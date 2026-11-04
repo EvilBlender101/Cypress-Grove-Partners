@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import worker, { nextBusinessDay, phoneFields } from './index.js';
 
 const ORIGIN = 'https://cypressgrove.partners';
+// Real Turnstile tokens are long; the first version cut them to 200 characters
+const GOOD_TOKEN = '0.' + 'a'.repeat(1400) + '.end';
 const env = {
   ALLOWED_ORIGINS: ORIGIN + ',https://www.cypressgrove.partners',
   TWENTY_API_URL: 'https://api.twenty.test',
@@ -22,7 +24,9 @@ globalThis.fetch = async (url, init = {}) => {
   const body = init.body instanceof FormData ? Object.fromEntries(init.body) : init.body ? (typeof init.body === 'string' && init.body.startsWith('{') ? JSON.parse(init.body) : init.body) : null;
   calls.push({ url, method: init.method || 'GET', body, headers: init.headers || {} });
   if (url.startsWith('https://challenges.cloudflare.com/')) {
-    return Response.json({ success: body.response === 'good-token' });
+    if (body.secret !== 'test-secret') return Response.json({ success: false, 'error-codes': ['invalid-input-secret'] });
+    if (body.response === 'expired-token') return Response.json({ success: false, 'error-codes': ['timeout-or-duplicate'] });
+    return Response.json({ success: body.response === GOOD_TOKEN, 'error-codes': body.response === GOOD_TOKEN ? [] : ['invalid-input-response'] });
   }
   if (url.startsWith('https://ntfy.sh/')) return new Response('ok');
   if (url.startsWith('https://api.twenty.test/rest/')) {
@@ -52,7 +56,7 @@ function post(body, { origin = ORIGIN, type = 'application/json' } = {}) {
 const good = {
   name: 'Dana Reyes', email: 'Dana@ReyesMachine.com', phone: '(813) 555-0142', company: 'Reyes Machine',
   makes: 'CNC parts for aerospace', county: 'Pinellas', amount: '$1M to $2M', use: 'Equipment',
-  notes: 'Adding a 5 axis cell.', website: '', 'cf-turnstile-response': 'good-token'
+  notes: 'Adding a 5 axis cell.', website: '', 'cf-turnstile-response': GOOD_TOKEN
 };
 
 async function run(name, fn) {
@@ -170,10 +174,45 @@ await run('Twenty failing to save the person returns an error and a warning push
   assert.equal(pushes()[0].headers.Title, 'Website inquiry failed to save');
 });
 
-await run('a failed spam check is refused before Twenty', async () => {
+await run('a failed spam check is refused before Twenty, without a push', async () => {
   const res = await post({ ...good, 'cf-turnstile-response': 'bad-token' });
   assert.equal(res.status, 400);
   assert.equal(twentyCalls().length, 0);
+  assert.equal(pushes().length, 0);
+});
+
+await run('the full length token reaches Turnstile intact', async () => {
+  await post(good);
+  const check = calls.find((c) => c.url.startsWith('https://challenges.cloudflare.com/'));
+  assert.equal(check.body.response, GOOD_TOKEN);
+});
+
+await run('an expired token gets the expired message', async () => {
+  const res = await post({ ...good, 'cf-turnstile-response': 'expired-token' });
+  assert.match((await res.json()).error, /expired/);
+});
+
+await run('a wrong secret sends a setup push with its length, not its value', async () => {
+  const saved = env.TURNSTILE_SECRET;
+  env.TURNSTILE_SECRET = 'wrong-secret-value';
+  try {
+    const res = await post(good);
+    assert.equal(res.status, 400);
+  } finally { env.TURNSTILE_SECRET = saved; }
+  await Promise.all(waits);
+  const p = pushes()[0];
+  assert.equal(p.headers.Title, 'Website form spam check is misconfigured');
+  assert.match(p.body, /invalid-input-secret/);
+  assert.match(p.body, /18 characters/);
+  assert.doesNotMatch(p.body, /wrong-secret-value/);
+});
+
+await run('a missing secret sends a setup push', async () => {
+  const saved = env.TURNSTILE_SECRET;
+  delete env.TURNSTILE_SECRET;
+  try { await post(good); } finally { env.TURNSTILE_SECRET = saved; }
+  await Promise.all(waits);
+  assert.match(pushes()[0].body, /secret-not-set/);
 });
 
 await run('the hidden trap field drops the submission quietly', async () => {

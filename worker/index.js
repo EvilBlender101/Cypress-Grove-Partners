@@ -62,8 +62,20 @@ async function handleIntake(request, env, ctx) {
   const problem = validate(form);
   if (problem) return json({ ok: false, error: problem }, 400);
 
-  const human = await verifyTurnstile(env, str(body['cf-turnstile-response']), request.headers.get('CF-Connecting-IP'));
-  if (!human) return json({ ok: false, error: 'The spam check didn’t pass. Refresh the page and send again.' }, 400);
+  // Turnstile tokens run past 1,000 characters (up to 2,048), so don't cut them to the field length
+  const check = await verifyTurnstile(env, str(body['cf-turnstile-response'], 4096), request.headers.get('CF-Connecting-IP'));
+  if (!check.ok) {
+    console.log('intake: spam check failed', check.codes.join(','));
+    if (check.codes.some((c) => SETUP_ERRORS.includes(c))) {
+      const len = (env.TURNSTILE_SECRET || '').length;
+      ctx.waitUntil(push(env, 'Website form spam check is misconfigured',
+        'Turnstile said: ' + check.codes.join(', ') + '. The stored TURNSTILE_SECRET is ' + len + ' characters long.', 'warning'));
+    }
+    const expired = check.codes.includes('timeout-or-duplicate');
+    return json({ ok: false, error: expired
+      ? 'The spam check expired. Refresh the page and send again.'
+      : 'The spam check didn’t pass. Refresh the page and send again.' }, 400);
+  }
 
   try {
     await saveToTwenty(env, form);
@@ -106,8 +118,12 @@ function validate(f) {
   return '';
 }
 
+// Turnstile error codes that mean the Worker is set up wrong, not that the visitor is a bot
+const SETUP_ERRORS = ['secret-not-set', 'missing-input-secret', 'invalid-input-secret', 'siteverify-unreachable'];
+
 async function verifyTurnstile(env, token, ip) {
-  if (!token || !env.TURNSTILE_SECRET) return false;
+  if (!env.TURNSTILE_SECRET) return { ok: false, codes: ['secret-not-set'] };
+  if (!token) return { ok: false, codes: ['missing-input-response'] };
   const data = new FormData();
   data.append('secret', env.TURNSTILE_SECRET);
   data.append('response', token);
@@ -115,10 +131,10 @@ async function verifyTurnstile(env, token, ip) {
   try {
     const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body: data });
     const out = await res.json();
-    return out.success === true;
+    return { ok: out.success === true, codes: out['error-codes'] || [] };
   } catch (err) {
     console.log('intake: Turnstile check failed', err && err.message);
-    return false;
+    return { ok: false, codes: ['siteverify-unreachable'] };
   }
 }
 
