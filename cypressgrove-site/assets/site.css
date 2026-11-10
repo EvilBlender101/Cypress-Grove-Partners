@@ -302,3 +302,17 @@ main,.footer{position:relative;z-index:1;}
 @media(max-width:1024px){.cards.three,.cards.two{grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(max-width:640px){.cards.three,.cards.two{grid-template-columns:1fr;}
   .market h1{font-size:36px;line-height:40px;}}
+
+/* The nav bar on a phone: the wordmark is 12px with .28em of tracking, which is 233px of text and
+   too much for the pill once the seal and the menu button are in it — it wrapped to two lines on
+   every page from a 390px screen down. Tighter tracking and a smaller size keep it on one line
+   without hiding the name. Measured, not eyeballed: the wordmark box must be 16px tall (one line)
+   at 390 and at 360. */
+@media(max-width:640px){.nav .wordmark{font-size:11px;letter-spacing:.16em;white-space:nowrap;}}
+@media(max-width:380px){.nav .wordmark{font-size:10px;letter-spacing:.1em;}}
+
+/* The same wrap happens once the links are back and the screen is still narrow (861–1024): the
+   links' own padding is what pushes the wordmark onto a second line there, so tighten it and hold
+   the wordmark on one line. */
+@media(max-width:1024px){.nav .wordmark{white-space:nowrap;letter-spacing:.22em;}
+  .nav-links a{padding:var(--s50) var(--s75);}}
