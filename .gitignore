@@ -1,0 +1,10 @@
+# This repo is the public site: Cloudflare publishes it from the repo root
+# (wrangler.jsonc, assets directory "./"), so anything committed here is live at
+# cypressgrove.partners. These are local working copies that must never be published.
+
+cgp-pipeline/
+cgp-compliance/
+marie setup/
+
+.DS_Store
+**/.DS_Store
