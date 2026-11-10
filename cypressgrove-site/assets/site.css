@@ -290,3 +290,15 @@ main,.footer{position:relative;z-index:1;}
 .intake-done p,.page .intake-done p{margin:0;color:var(--body-ink);max-width:420px;}
 @media(max-width:900px){.intake-grid{grid-template-columns:1fr;gap:var(--s500);}.intake-intro{position:static;}}
 @media(max-width:640px){.intake-card{padding:var(--s300) var(--s200);border-radius:12px;}.field-row{grid-template-columns:1fr;}}
+
+/* Marketing pages that are not the home page (Prime Readiness).
+   They carry body class="market" instead of class="page": .page is the document look — an 800px
+   measure and 30px section headings — which is right for the privacy page and the intake form and
+   wrong for a sales page, where four-across cards in an 800px column come out 162px wide. */
+.market h1{font-family:var(--display);font-weight:600;font-size:56px;line-height:1.05;max-width:780px;}
+.market .section:first-of-type{padding-top:160px;}
+.cards.three{grid-template-columns:repeat(3,minmax(0,1fr));}
+.cards.two{grid-template-columns:repeat(2,minmax(0,1fr));}
+@media(max-width:1024px){.cards.three,.cards.two{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:640px){.cards.three,.cards.two{grid-template-columns:1fr;}
+  .market h1{font-size:36px;line-height:40px;}}
