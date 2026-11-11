@@ -39,7 +39,7 @@ function json(body, status = 200, extra = {}) {
   });
 }
 
-const TRY_AGAIN = 'Your details didn’t send. Try again, or email jack@cypressgrove.partners.';
+const TRY_AGAIN = 'Your details didn’t send. Try again, or email info@cypressgrove.partners.';
 
 async function handleIntake(request, env, ctx) {
   const allowed = (env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean);
