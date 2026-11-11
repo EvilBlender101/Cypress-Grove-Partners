@@ -85,11 +85,11 @@
       }
       setBusy(false);
       if (window.turnstile) window.turnstile.reset();
-      showStatus(r.body.error || 'Your details didn’t send. Try again, or email jack@cypressgrove.partners.');
+      showStatus(r.body.error || 'Your details didn’t send. Try again, or email info@cypressgrove.partners.');
     }).catch(function () {
       setBusy(false);
       if (window.turnstile) window.turnstile.reset();
-      showStatus('Your details didn’t send because the connection dropped. Try again, or email jack@cypressgrove.partners.');
+      showStatus('Your details didn’t send because the connection dropped. Try again, or email info@cypressgrove.partners.');
     });
   });
 })();
